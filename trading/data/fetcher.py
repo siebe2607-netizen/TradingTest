@@ -16,37 +16,24 @@ class DataFetcher:
         start: Optional[str] = None,
         end: Optional[str] = None,
     ) -> pd.DataFrame:
-        """Fetch historical OHLCV data.
-
-        Args:
-            ticker: Stock symbol (e.g. "AAPL").
-            period: Data period (e.g. "2y", "6mo"). Ignored if start/end given.
-            interval: Bar interval (e.g. "1d", "1h").
-            start: Start date as YYYY-MM-DD string.
-            end: End date as YYYY-MM-DD string.
-
-        Returns:
-            DataFrame with columns: Open, High, Low, Close, Volume.
-            Index is DatetimeIndex.
-
-        Raises:
-            ValueError: If no data is returned for the ticker.
-        """
-        if start and end:
-            df = yf.download(ticker, start=start, end=end, interval=interval, progress=False)
-        else:
-            df = yf.download(ticker, period=period, interval=interval, progress=False)
+        """Fetch historical OHLCV data."""
+        kwargs = {"period": period, "interval": interval} if not (start and end) else {"start": start, "end": end, "interval": interval}
+        df = yf.download(ticker, progress=False, group_by='ticker', **kwargs)
 
         if df.empty:
             raise ValueError(f"No data returned for ticker '{ticker}'")
 
-        # yfinance may return MultiIndex columns for single ticker; flatten
+        # Handle MultiIndex output from yfinance
         if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
+            if ticker in df.columns.levels[0]:
+                df = df[ticker].copy()
+            else:
+                df.columns = df.columns.get_level_values(1) if len(df.columns.levels) > 1 else df.columns.get_level_values(0)
 
         # Drop Adj Close if present, keep core OHLCV
-        if "Adj Close" in df.columns:
-            df = df.drop(columns=["Adj Close"])
+        cols_to_keep = ["Open", "High", "Low", "Close", "Volume"]
+        available_cols = [c for c in cols_to_keep if c in df.columns]
+        df = df[available_cols].copy()
 
         df = df.dropna(subset=["Close"])
         df.index = pd.DatetimeIndex(df.index)

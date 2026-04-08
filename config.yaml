@@ -1,10 +1,10 @@
 data:
-  default_ticker: "AAPL"
+  default_ticker: "ADYEN.AS"
   default_period: "2y"
   default_interval: "1d"
 
 strategy:
-  name: "sma_rsi_macd"
+  name: "valuation_overlay"
   sma_short_period: 20
   sma_long_period: 50
   ema_period: 12
@@ -16,6 +16,7 @@ strategy:
   macd_signal: 9
   bollinger_period: 20
   bollinger_std_dev: 2
+  valuation_engine: "classic"  # Options: "classic", "growth"
 
 risk:
   initial_capital: 100000.0
@@ -23,10 +24,11 @@ risk:
   stop_loss_pct: 0.05
   take_profit_pct: 0.15
   max_drawdown_pct: 0.20
+  margin_of_safety: 0.15
   max_open_positions: 5
 
 paper_trading:
-  tickers: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
+  tickers: ["ADYEN.AS", "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
   check_interval_seconds: 60
   trading_hours_start: "09:30"
   trading_hours_end: "16:00"

@@ -2,9 +2,11 @@
 
 from trading.strategy.base import BaseStrategy, Signal, Trade
 from trading.strategy.sma_rsi_macd import SmaRsiMacdStrategy
+from trading.strategy.valuation_overlay import ValuationOverlayStrategy
 
 STRATEGY_REGISTRY: dict[str, type[BaseStrategy]] = {
     "sma_rsi_macd": SmaRsiMacdStrategy,
+    "valuation_overlay": ValuationOverlayStrategy,
 }
 
 

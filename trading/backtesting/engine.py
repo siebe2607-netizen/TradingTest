@@ -22,6 +22,7 @@ class BacktestResult:
     total_return_pct: float
     max_drawdown_pct: float
     win_rate: float
+    fair_value: Optional[float] = None
 
 
 class BacktestEngine:
@@ -102,7 +103,7 @@ class BacktestEngine:
 
         equity_curve = pd.Series(equity_values, index=df.index[: len(equity_values)])
 
-        return self._summarize(ticker, df, executed_trades, equity_curve, risk_mgr)
+        return self._summarize(ticker, df, executed_trades, equity_curve, risk_mgr, strategy.fair_value)
 
     def _close_trade(self, trade: Trade, date: pd.Timestamp, price: float, reason: str):
         """Helper to fill trade exit details."""
@@ -119,6 +120,7 @@ class BacktestEngine:
         trades: List[Trade],
         equity: pd.Series,
         risk_mgr: RiskManager,
+        fair_value: Optional[float] = None,
     ) -> BacktestResult:
         """Calculate performance metrics."""
         initial = risk_mgr.initial_capital
@@ -138,4 +140,5 @@ class BacktestEngine:
             total_return_pct=total_return,
             max_drawdown_pct=risk_mgr.max_drawdown,
             win_rate=win_rate,
+            fair_value=fair_value,
         )

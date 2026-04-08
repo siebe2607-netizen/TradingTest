@@ -22,6 +22,12 @@ class Dashboard:
         print(f"Max Drawdown:     {self.res.max_drawdown_pct:.2%}")
         print(f"Total Trades:     {len(self.res.trades)}")
         print(f"Win Rate:         {self.res.win_rate:.2%}")
+        
+        if self.res.fair_value:
+            print(f"Fair Value Est:   ${self.res.fair_value:,.2f}")
+            latest_price = self.res.df["Close"].iloc[-1]
+            upside = (self.res.fair_value - latest_price) / latest_price
+            print(f"Upside/Downside:  {upside:.2%}")
 
         if self.res.trades:
             returns = [t.pct_return for t in self.res.trades]
@@ -43,6 +49,9 @@ class Dashboard:
         ax0.plot(df.index, df["Close"], label="Price", color="black", alpha=0.7)
         if "BB_Upper" in df.columns:
             ax0.fill_between(df.index, df["BB_Lower"], df["BB_Upper"], color="gray", alpha=0.2, label="Bollinger Bands")
+
+        if self.res.fair_value:
+            ax0.axhline(self.res.fair_value, color="darkblue", linestyle="--", linewidth=2, label=f"Fair Value (${self.res.fair_value:,.2f})")
 
         # Plot Strategy Signals
         buys = [t for t in self.res.trades]

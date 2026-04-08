@@ -1,115 +1,103 @@
-# Stock Trading Algorithm
+# Stock Trading & Valuation Algorithm
 
-A Python-based stock trading algorithm using technical analysis indicators with backtesting, paper trading, risk management, and visualization.
+A Python-based algorithmic trading and fundamental analysis tool. This engine combines traditional technical indicators with a sophisticated Discounted Cash Flow (DCF) valuation model to find undervalued opportunities in the market.
 
-## Features
+## Key Features
 
-- **Technical Analysis Strategy**: Combines SMA crossover, RSI, MACD, and Bollinger Bands for signal generation
-- **Backtesting Engine**: Test strategies against historical data with detailed performance metrics
-- **Paper Trading**: Simulate live trading with real-time Yahoo Finance data (no real money)
-- **Risk Management**: Stop-loss, take-profit, position sizing, and max drawdown controls
-- **Visualization Dashboard**: 4-panel charts with price/signals, RSI, MACD, and equity curve
+- **Dual Valuation Engines**: 
+  - **Classic**: A 5-year flat DCF model with a standard discount rate.
+  - **Growth (CAPM)**: A 10-year model using the Capital Asset Pricing Model (CAPM) for stock-specific risk pricing, featuring growth decay and multi-stage projections.
+- **Market Scanner**: Instantly scan entire indices (S&P 500, AEX) for undervalued stocks and technical buy signals.
+- **Robust Data Fetching**: Advanced Yahoo Finance integration with built-in rate limiting and fallback price logic to handle market-closed/stale data.
+- **Strategy Overlay**: Only executes technical trades (RSI/SMA/MACD) on stocks that are fundamentally undervalued by a configurable Margin of Safety.
+- **Position & Risk Management**: Automated stop-loss, take-profit, and position sizing based on portfolio equity.
+- **Visualization**: Detailed 4-panel charting of price, technicals, and equity curves.
+
+---
 
 ## Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd stock_trading_algo
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Usage
+---
 
-### Backtest
+## 🚀 Usage Guide
 
-Run a backtest on historical data:
-
+### 1. Market Scanning
+Scan an index to find the best upside potential.
 ```bash
-# Default: AAPL, 2 years of data
-python main.py backtest
+# Scan S&P 500 using the standard engine
+python3 main.py scan --index SP500
 
-# Custom ticker and period
-python main.py backtest --ticker MSFT --period 1y
-
-# Custom date range
-python main.py backtest --ticker GOOGL --start 2023-01-01 --end 2024-01-01
-
-# Save chart to specific file
-python main.py backtest --ticker AAPL --output results.png
+# Scan AEX using the Growth (CAPM) engine
+python3 main.py scan --index AEX --engine growth
 ```
 
-### Paper Trade
-
-Simulate live trading (no real money):
-
+### 2. Deep-Dive Valuation
+Run a detailed DCF analysis on a specific ticker.
 ```bash
-# Default tickers from config
-python main.py paper
+# Simple valuation
+python3 main.py valuation --ticker ADYEN.AS
 
-# Custom tickers
-python main.py paper --tickers AAPL MSFT GOOGL
+# Advanced growth valuation with a "Bear Case" scenario
+python3 main.py valuation --ticker DLO --engine growth --conservative-growth 0.15
 ```
 
-Press `Ctrl+C` to stop and see the session summary.
-
-## Configuration
-
-Edit `config.yaml` to tune strategy parameters:
-
-```yaml
-strategy:
-  sma_short_period: 20    # Short-term SMA window
-  sma_long_period: 50     # Long-term SMA window
-  rsi_period: 14          # RSI lookback period
-  rsi_overbought: 70      # RSI overbought threshold
-  rsi_oversold: 30        # RSI oversold threshold
-
-risk:
-  initial_capital: 100000 # Starting capital ($)
-  stop_loss_pct: 0.05     # 5% stop-loss
-  take_profit_pct: 0.15   # 15% take-profit
-  max_drawdown_pct: 0.20  # Halt at 20% drawdown
-  max_position_pct: 0.10  # Max 10% of portfolio per position
+### 3. Backtesting
+Test a strategy against historical data.
+```bash
+python3 main.py backtest --ticker ASML.AS --period 2y --output asml_chart.png
 ```
 
-## Strategy Logic
+---
 
-**BUY** when all conditions are met:
-1. SMA short crosses above SMA long (golden cross)
-2. RSI is below the overbought threshold
-3. MACD histogram is positive
-4. Price is above the lower Bollinger Band
+## 🛠 Advanced Configuration
 
-**SELL** when any condition is met:
-1. SMA short crosses below SMA long (death cross)
-2. RSI exceeds the overbought threshold
-3. MACD histogram flips from positive to negative
+### Valuation Engines
+You can tune the fair-value math in `config.yaml` or via CLI:
+- `--engine growth`: Uses a 10-year horizon. Years 1-5 use explicit growth; years 6-10 "fade" down to terminal growth. Uses **Beta** to calculate the discount rate automatically.
+- `--required-return`: Override the discount rate (default is 9% for classic or CAPM-derived for growth).
+- `--perpetual-growth`: The growth rate assumed forever (default: 2.5%).
 
-## Adding a New Strategy
+### Managing Tickers
+To add your own stocks to the scanner:
+1. Open `trading/scanner/aex_list.py` (or create a new index file).
+2. Add the Yahoo Finance ticker symbol (e.g., `NVDA`, `ADYEN.AS`) to the list.
+3. Use the `--index` flag in the scan command to point to your list.
 
-1. Create a new file in `trading/strategy/`
-2. Subclass `BaseStrategy` from `trading/strategy/base.py`
-3. Implement `prepare_data()` and `generate_signal()`
-4. Register it in `trading/strategy/__init__.py`
+---
+
+## 📈 Strategy Logic: Valuation Overlay
+The algorithm uses the `ValuationOverlayStrategy` which only triggers a **BUY** if:
+1. **Technical Signal**: SMA Golden Cross + RSI < 70 + MACD Positive.
+2. **Fundamental Signal**: Current Price is at least 15% (Margin of Safety) below the Fair Value calculated by the DCF engine.
+
+---
 
 ## Project Structure
 
-```
+```text
 trading/
-  data/fetcher.py          - Yahoo Finance data retrieval
-  indicators/technical.py  - SMA, EMA, RSI, MACD, Bollinger Bands
-  strategy/base.py         - Abstract strategy interface
-  strategy/sma_rsi_macd.py - Default technical analysis strategy
-  risk/manager.py          - Position sizing & risk controls
-  backtesting/engine.py    - Historical simulation engine
-  paper_trading/trader.py  - Live paper trading loop
-  visualization/dashboard.py - Matplotlib charts
+  ├── valuation/           # DCF Engines (Classic & Growth/CAPM)
+  ├── scanner/             # Index scanners (S&P 500 & AEX)
+  ├── strategy/            # Trading logic (Technicals + Overlays)
+  ├── data/                # Robust YFinance fetchers
+  ├── indicators/          # Technical math (SMA, RSI, etc.)
+  └── visualization/       # Matplotlib dashboards
 ```
 
 ## Running Tests
-
 ```bash
+export PYTHONPATH=$PYTHONPATH:.
 python -m pytest tests/ -v
 ```
 
 ## Disclaimer
-
-This software is for educational and research purposes only. It is not financial advice. Do not use this for actual trading without thorough testing and understanding of the risks involved. Past performance does not guarantee future results.
+Educational purposes only. This engine does not constitute financial advice. Algorithmic trading involves high risk.

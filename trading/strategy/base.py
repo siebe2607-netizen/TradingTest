@@ -40,6 +40,7 @@ class BaseStrategy(ABC):
 
     def __init__(self, config: dict):
         self.config = config
+        self.fair_value: Optional[float] = None
 
     @abstractmethod
     def prepare_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -50,3 +51,18 @@ class BaseStrategy(ABC):
     def generate_signal(self, df: pd.DataFrame, current_idx: int) -> Signal:
         """Generate a BUY, SELL, or HOLD signal for the current index."""
         pass
+
+    def update_valuation(self, ticker: str):
+        """Update the fair value estimate for the current ticker."""
+        from trading.valuation import get_valuation_engine
+        
+        # Get engine choice from config, default to 'classic'
+        engine_type = self.config.get("strategy", {}).get("valuation_engine", "classic")
+        engine = get_valuation_engine(engine_type)
+        
+        try:
+            # We use calculate_dcf_fair_value which is common to both
+            self.fair_value = engine.calculate_dcf_fair_value(ticker)
+        except Exception as e:
+            print(f"Valuation error: {e}")
+            self.fair_value = None
