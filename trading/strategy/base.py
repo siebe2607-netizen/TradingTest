@@ -57,12 +57,24 @@ class BaseStrategy(ABC):
         from trading.valuation import get_valuation_engine
         
         # Get engine choice from config, default to 'classic'
-        engine_type = self.config.get("strategy", {}).get("valuation_engine", "classic")
+        strat_cfg = self.config.get("strategy", {})
+        engine_type = strat_cfg.get("valuation_engine", "classic")
         engine = get_valuation_engine(engine_type)
+        
+        # Build arguments for the engine
+        kwargs = {}
+        if "perpetual_growth" in strat_cfg:
+            kwargs["perpetual_growth"] = strat_cfg["perpetual_growth"]
+            
+        if "required_return" in strat_cfg:
+            if engine_type == "growth":
+                kwargs["discount_rate_override"] = strat_cfg["required_return"]
+            else:
+                kwargs["required_return"] = strat_cfg["required_return"]
         
         try:
             # We use calculate_dcf_fair_value which is common to both
-            self.fair_value = engine.calculate_dcf_fair_value(ticker)
+            self.fair_value = engine.calculate_dcf_fair_value(ticker, **kwargs)
         except Exception as e:
             print(f"Valuation error: {e}")
             self.fair_value = None

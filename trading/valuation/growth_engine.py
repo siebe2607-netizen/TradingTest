@@ -44,9 +44,11 @@ class GrowthValuationEngine:
     def _normalise_growth(raw: float) -> float:
         """Divide by 100 when yfinance returns whole-number percentages (e.g. 27.6 → 0.276)."""
         if abs(raw) > 1.0:
+            # Check if it looks like a whole percentage (e.g. 27.0) vs a massive multiplier (e.g. 200.0)
+            # Most companies don't sustain > 500% growth. If it's > 5 and looks like an int, it's likely a pct.
             raw = raw / 100.0
-        # Realistic bounds: -30% … +60%
-        return max(-0.30, min(0.60, raw))
+        # Realistic bounds for Stage 1: -30% … +120%
+        return max(-0.30, min(1.20, raw))
 
     def _fetch_fundamentals(self, ticker_symbol: str) -> dict:
         """Fetch and cache fundamental data with rate-limit protection."""
@@ -78,25 +80,28 @@ class GrowthValuationEngine:
         if not shares_outstanding or current_fcf is None or current_fcf <= 0:
             raise ValueError(f"Insufficient data: FCF={current_fcf}, Shares={shares_outstanding}")
 
-        # Growth: prefer earningsGrowth (more forward-looking), fallback to revenue
-        earnings_growth = info.get("earningsGrowth")
-        revenue_growth  = info.get("revenueGrowth")
-        quarterly_growth = info.get("earningsQuarterlyGrowth")
+        # Growth sources and their weights
+        # Higher weights = more influence on the final blended growth rate
+        sources = {
+            "earningsGrowth": 1.0,           # Standard forward-looking earnings growth
+            "earningsQuarterlyGrowth": 0.5,  # Recent performance (noisier)
+            "revenueGrowth": 0.4             # Top-line growth (conservative fallback)
+        }
 
-        # Pick the highest credible growth signal (earnings weighted heavier)
-        candidates = []
-        if earnings_growth is not None:
-            candidates.append(self._normalise_growth(earnings_growth) * 1.0)   # full weight
-        if quarterly_growth is not None:
-            candidates.append(self._normalise_growth(quarterly_growth) * 0.5)  # half weight (noisy)
-        if revenue_growth is not None:
-            candidates.append(self._normalise_growth(revenue_growth) * 0.3)    # lower weight
+        weighted_growth_sum = 0.0
+        total_weight = 0.0
 
-        # Weighted average of whatever signals were found
-        if candidates:
-            growth_rate = sum(candidates) / len(candidates)
-            # Re-cap after blending
-            growth_rate = max(-0.30, min(0.60, growth_rate))
+        for field, weight in sources.items():
+            val = info.get(field)
+            if val is not None:
+                norm_val = self._normalise_growth(val)
+                weighted_growth_sum += (norm_val * weight)
+                total_weight += weight
+
+        if total_weight > 0:
+            growth_rate = weighted_growth_sum / total_weight
+            # Final safety cap
+            growth_rate = max(-0.30, min(1.20, growth_rate))
         else:
             growth_rate = 0.10
 

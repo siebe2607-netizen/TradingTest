@@ -59,9 +59,15 @@ def cmd_paper(args, config):
 
 def cmd_scan(args, config):
     """Scan an index for signals."""
-    # Override config engine if flag is provided
+    # Override config settings if flags are provided
     if args.engine:
         config["strategy"]["valuation_engine"] = args.engine
+    
+    # We pass these through via the config so the strategy/engine pick them up
+    if hasattr(args, 'required_return') and args.required_return is not None:
+        config["strategy"]["required_return"] = args.required_return
+    if hasattr(args, 'perpetual_growth') and args.perpetual_growth is not None:
+        config["strategy"]["perpetual_growth"] = args.perpetual_growth
         
     scanner = MarketScanner(config)
     
@@ -143,6 +149,10 @@ def main():
     scan_parser.add_argument("--tickers", nargs="+", default=None, help="Specific tickers to scan")
     scan_parser.add_argument("--engine", type=str, choices=["classic", "growth"],
                             help="Valuation engine to use (default: from config)")
+    scan_parser.add_argument("--required-return", type=float, default=None,
+                            help="Override discount rate for all stocks in the scan")
+    scan_parser.add_argument("--perpetual-growth", type=float, default=None,
+                            help="Override terminal growth rate for all stocks")
 
     # Valuation subcommand
     val_parser = subparsers.add_parser("valuation", help="DCF fair-value estimate for a ticker")
