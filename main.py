@@ -15,6 +15,7 @@ from trading.scanner.sp500_list import SP500_TICKERS
 from trading.scanner.dax_list import DAX_TICKERS
 from trading.scanner.nasdaq_list import NASDAQ_TICKERS
 from trading.scanner.ftse_list import FTSE_TICKERS
+from trading.scanner.em_list import EM_TICKERS
 from trading.valuation import get_valuation_engine
 
 
@@ -84,6 +85,8 @@ def cmd_scan(args, config):
         tickers = NASDAQ_TICKERS
     elif args.index == "FTSE":
         tickers = FTSE_TICKERS
+    elif args.index == "EM":
+        tickers = EM_TICKERS
     else:
         tickers = args.tickers or AEX_TICKERS
 

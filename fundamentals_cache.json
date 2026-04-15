@@ -460,5 +460,15 @@
       "sector": "Communication Services",
       "industry": "Internet Content & Information"
     }
+  },
+  "DLO": {
+    "timestamp": 1776275806.557568,
+    "data": {
+      "fcf": 378672000.0,
+      "shares_outstanding": 165877764,
+      "growth_rate": 0.47458630978947375,
+      "beta": 1.036,
+      "growth_rate_source": "blended"
+    }
   }
 }

@@ -35,7 +35,7 @@ case $option in
       4) engine="ebitda" ;;
     esac
     
-    read -p "Enter Index (e.g. SP500, AEX, DAX, NASDAQ, FTSE) [default: AEX]: " index
+    read -p "Enter Index (e.g. SP500, AEX, DAX, NASDAQ, FTSE, EM) [default: AEX]: " index
     cmd="python3 main.py scan"
     if [ -n "$index" ]; then cmd="$cmd --index \"$index\""; fi
     if [ -n "$engine" ]; then cmd="$cmd --engine \"$engine\""; fi

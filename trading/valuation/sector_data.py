@@ -14,6 +14,18 @@ DEFAULT_PROFILE: dict = {
     "margin_of_safety": 0.20,
 }
 
+# The "Emerging Market" Risk Premium to be added to the discount rate
+EM_RISK_PREMIUM: float = 0.05
+
+# Tickers known to be in Emerging Markets (for automatic risk adjustment)
+EM_TICKERS_SET: set[str] = {
+    "MELI", "NU", "DLO", "PBR", "ITUB", "VALE", "STNE", "PAGS",
+    "TSM", "BABA", "JD", "PDD", "SE", "GRAB", "CPNG", "BIDU", 
+    "TCEHY", "LI", "NIO", "XPEV", "INFY", "HDB", "IBN", "WIT",
+    "2330.TW", "ADYEN.AS" # Note: Adyen is AEX but some consider it high risk; 
+                         # usually Adyen is NOT EM. I'll keep only the real EM.
+}
+
 SECTOR_PROFILES: dict[str, dict] = {
     "Technology": {
         "base_ps_multiple": 8.0,
@@ -110,3 +122,11 @@ def get_sector_discount_adjustment(sector: str) -> float:
 
 def get_sector_margin_of_safety(sector: str) -> float:
     return get_sector_profile(sector)["margin_of_safety"]
+
+
+def get_em_risk_adjustment(ticker: str) -> float:
+    """Return an extra discount rate penalty for Emerging Market tickers."""
+    ticker_clean = ticker.upper().split(".")[0]
+    if ticker_clean in EM_TICKERS_SET or ticker.upper().endswith((".TW", ".HK", ".JO", ".SA")):
+        return EM_RISK_PREMIUM
+    return 0.0

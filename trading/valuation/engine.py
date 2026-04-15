@@ -23,6 +23,7 @@ class ValuationEngine:
         perpetual_growth: float = 0.025,
         required_return: float = 0.09,
         growth_stage2_rate: Optional[float] = None,  # optional override for conservative 2nd stage
+        em_adjustment: float = 0.0,
     ) -> float:
         """
         Intrinsic value per share using a 2-stage DCF model.
@@ -101,6 +102,9 @@ class ValuationEngine:
             except Exception as e:
                 raise ValueError(f"Fundamental fetch failed for {ticker_symbol}: {e}")
 
+        # Apply EM adjustment if any
+        required_return += em_adjustment
+
         # Allow caller to override the growth rate (e.g. conservative scenario)
         if growth_stage2_rate is not None:
             growth_rate = growth_stage2_rate
@@ -146,6 +150,13 @@ class ValuationEngine:
         conservative_growth : If set, also calculates a bear-case fair value using this
                               lower growth rate, giving a tighter valuation range.
         """
+        from trading.valuation.sector_data import get_em_risk_adjustment
+        
+        # Apply automatic Emerging Market risk premium
+        orig_required_return = required_return
+        em_adj = get_em_risk_adjustment(ticker_symbol)
+        required_return += em_adj
+        
         try:
             # --- Robust Price Fetch ---
             time.sleep(self.sleep_seconds)
@@ -175,6 +186,7 @@ class ValuationEngine:
                 projection_years=projection_years,
                 perpetual_growth=perpetual_growth,
                 required_return=required_return,
+                em_adjustment=em_adj,
             )
 
             result = {
@@ -182,6 +194,7 @@ class ValuationEngine:
                 "current_price": round(current_price, 2),
                 "fair_value_bull": fair_value_bull,
                 "required_return_pct": round(required_return * 100, 1),
+                "em_risk_adj_pct": round(em_adj * 100, 1) if em_adj > 0 else 0,
                 "perpetual_growth_pct": round(perpetual_growth * 100, 1),
                 "projection_years": projection_years,
             }
@@ -194,6 +207,7 @@ class ValuationEngine:
                     perpetual_growth=perpetual_growth,
                     required_return=required_return,
                     growth_stage2_rate=conservative_growth,
+                    em_adjustment=em_adj,
                 )
                 result["fair_value_bear"] = fair_value_bear
                 result["conservative_growth_pct"] = round(conservative_growth * 100, 1)

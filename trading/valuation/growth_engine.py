@@ -190,6 +190,7 @@ class GrowthValuationEngine:
         growth_override: Optional[float] = None,
         discount_rate_override: Optional[float] = None,
         forward_weight: Optional[float] = None,
+        em_adjustment: float = 0.0,
     ) -> float:
         """
         2-stage DCF using CAPM discount rate and linear growth decay.
@@ -228,6 +229,9 @@ class GrowthValuationEngine:
             required_return = discount_rate_override
         else:
             required_return = self.RISK_FREE_RATE + beta * self.EQUITY_RISK_PREMIUM
+
+        # Apply EM adjustment if any
+        required_return += em_adjustment
 
         total_years = stage1_years + stage2_years
 
@@ -271,6 +275,11 @@ class GrowthValuationEngine:
         discount_rate_override: Optional[float] = None,
     ) -> dict:
         """Returns valuation snapshot. conservative_growth triggers a bear case."""
+        from trading.valuation.sector_data import get_em_risk_adjustment
+        
+        # Apply automatic Emerging Market risk premium
+        em_adj = get_em_risk_adjustment(ticker_symbol)
+
         try:
             # --- Robust Price Fetch ---
             time.sleep(self.sleep_seconds)
@@ -301,6 +310,7 @@ class GrowthValuationEngine:
                 stage1_years=stage1_years,
                 stage2_years=stage2_years,
                 discount_rate_override=discount_rate_override,
+                em_adjustment=em_adj,
             )
 
             # Fetch to get beta / growth for display
@@ -314,8 +324,9 @@ class GrowthValuationEngine:
                 "growth_rate_source": fund.get("growth_rate_source", "historical_only"),
                 "beta":            round(fund["beta"], 2),
                 "capm_rate_pct":   round(
-                    (self.RISK_FREE_RATE + fund["beta"] * self.EQUITY_RISK_PREMIUM) * 100, 2
+                    (self.RISK_FREE_RATE + fund["beta"] * self.EQUITY_RISK_PREMIUM + em_adj) * 100, 2
                 ),
+                "em_risk_adj_pct": round(em_adj * 100, 1) if em_adj > 0 else 0,
                 "perpetual_growth_pct": round(perpetual_growth * 100, 1),
                 "horizon_years": stage1_years + stage2_years,
                 "engine": "growth",
@@ -329,6 +340,7 @@ class GrowthValuationEngine:
                     stage2_years=stage2_years,
                     growth_override=conservative_growth,
                     discount_rate_override=discount_rate_override,
+                    em_adjustment=em_adj,
                 )
                 result["fair_value_bear"] = fair_value_bear
                 result["conservative_growth_pct"] = round(conservative_growth * 100, 1)
