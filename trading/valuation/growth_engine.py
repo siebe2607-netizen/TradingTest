@@ -32,6 +32,10 @@ class GrowthValuationEngine:
     RISK_FREE_RATE: float = 0.042   # ~10Y German Bund / Treasury
     EQUITY_RISK_PREMIUM: float = 0.050  # Historical ERP for developed markets
 
+    # Forward estimate blending weights
+    FORWARD_WEIGHT: float = 0.6
+    HISTORICAL_WEIGHT: float = 0.4
+
     def __init__(self, sleep_seconds: float = 1.5):
         self.sleep_seconds = sleep_seconds
         self.cache = FundamentalCache()
@@ -49,6 +53,49 @@ class GrowthValuationEngine:
             raw = raw / 100.0
         # Realistic bounds for Stage 1: -30% … +120%
         return max(-0.30, min(1.20, raw))
+
+    def _fetch_forward_estimates(self, ticker) -> Optional[float]:
+        """
+        Attempt to extract analyst consensus forward growth estimates.
+
+        Tries ``ticker.growth_estimates`` and ``ticker.earnings_estimate``
+        from yfinance. Returns a normalised growth rate or None.
+        """
+        try:
+            ge = ticker.growth_estimates
+            if ge is not None and not ge.empty:
+                # growth_estimates is a DataFrame with index like
+                # ['0q', '+1q', '0y', '+1y', '+5y', '-5y'] and columns per ticker.
+                # We want the "+1y" (next year) row.
+                for label in ["+1y", "0y", "+1q"]:
+                    if label in ge.index:
+                        val = ge.loc[label].iloc[0]
+                        if val is not None and not pd.isna(val):
+                            return self._normalise_growth(float(val))
+        except Exception:
+            pass
+
+        try:
+            ee = ticker.earnings_estimate
+            if ee is not None and not ee.empty:
+                # earnings_estimate has columns like 'avg', 'low', 'high'
+                # and index like '0y', '+1y'. Compute YoY growth from avg.
+                if "avg" in ee.columns and len(ee) >= 2:
+                    current = ee["avg"].iloc[0]
+                    next_yr = ee["avg"].iloc[1]
+                    if (
+                        current is not None
+                        and next_yr is not None
+                        and not pd.isna(current)
+                        and not pd.isna(next_yr)
+                        and current != 0
+                    ):
+                        yoy = (next_yr - current) / abs(current)
+                        return self._normalise_growth(float(yoy))
+        except Exception:
+            pass
+
+        return None
 
     def _fetch_fundamentals(self, ticker_symbol: str) -> dict:
         """Fetch and cache fundamental data with rate-limit protection."""
@@ -99,11 +146,24 @@ class GrowthValuationEngine:
                 total_weight += weight
 
         if total_weight > 0:
-            growth_rate = weighted_growth_sum / total_weight
-            # Final safety cap
-            growth_rate = max(-0.30, min(1.20, growth_rate))
+            historical_growth = weighted_growth_sum / total_weight
+            historical_growth = max(-0.30, min(1.20, historical_growth))
         else:
-            growth_rate = 0.10
+            historical_growth = 0.10
+
+        # Blend with analyst forward estimates when available
+        forward_growth = self._fetch_forward_estimates(ticker)
+        if forward_growth is not None:
+            growth_rate = (
+                forward_growth * self.FORWARD_WEIGHT
+                + historical_growth * self.HISTORICAL_WEIGHT
+            )
+            growth_rate_source = "blended"
+        else:
+            growth_rate = historical_growth
+            growth_rate_source = "historical_only"
+
+        growth_rate = max(-0.30, min(1.20, growth_rate))
 
         beta = info.get("beta") or 1.0
 
@@ -112,6 +172,7 @@ class GrowthValuationEngine:
             "shares_outstanding": shares_outstanding,
             "growth_rate": growth_rate,
             "beta": beta,
+            "growth_rate_source": growth_rate_source,
         }
         self.cache.set(ticker_symbol, data)
         return data
@@ -128,6 +189,7 @@ class GrowthValuationEngine:
         stage2_years: int = 5,
         growth_override: Optional[float] = None,
         discount_rate_override: Optional[float] = None,
+        forward_weight: Optional[float] = None,
     ) -> float:
         """
         2-stage DCF using CAPM discount rate and linear growth decay.
@@ -139,8 +201,23 @@ class GrowthValuationEngine:
         stage2_years            : Fading-growth phase length (default 5).
         growth_override         : Pin the growth rate manually (bear/bull scenarios).
         discount_rate_override  : Pin the discount rate (bypasses CAPM).
+        forward_weight          : Override the forward/historical blend weight (0-1).
         """
-        fund = self._fetch_fundamentals(ticker_symbol)
+        # Apply custom forward weight if specified (before fetching fundamentals)
+        original_fw = self.FORWARD_WEIGHT
+        original_hw = self.HISTORICAL_WEIGHT
+        if forward_weight is not None:
+            self.FORWARD_WEIGHT = forward_weight
+            self.HISTORICAL_WEIGHT = 1.0 - forward_weight
+            # Invalidate cache so new weight takes effect
+            self.cache._cache.pop(ticker_symbol, None)
+        try:
+            fund = self._fetch_fundamentals(ticker_symbol)
+        finally:
+            # Restore original weights
+            self.FORWARD_WEIGHT = original_fw
+            self.HISTORICAL_WEIGHT = original_hw
+
         current_fcf     = fund["fcf"]
         shares          = fund["shares_outstanding"]
         growth_rate     = growth_override if growth_override is not None else fund["growth_rate"]
@@ -234,6 +311,7 @@ class GrowthValuationEngine:
                 "current_price":   round(current_price, 2),
                 "fair_value_bull": fair_value_bull,
                 "growth_rate_pct": round(fund["growth_rate"] * 100, 1),
+                "growth_rate_source": fund.get("growth_rate_source", "historical_only"),
                 "beta":            round(fund["beta"], 2),
                 "capm_rate_pct":   round(
                     (self.RISK_FREE_RATE + fund["beta"] * self.EQUITY_RISK_PREMIUM) * 100, 2

@@ -30,28 +30,74 @@ pip install -r requirements.txt
 
 ## 🚀 Usage Guide
 
-### 1. Market Scanning
-Scan an index to find the best upside potential.
+You can run the new interactive script for a user-friendly menu:
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+Or run the CLI commands manually:
+
+### 1. Market Scanning (`scan`)
+Scan an index (or specific tickers) to find the best upside potential.
+
+**Arguments:**
+- `--index` (optional): Index to scan (default: AEX).
+- `--tickers` (optional): List of specific tickers to scan (e.g. `--tickers AAPL MSFT`).
+- `--engine` (optional): Valuation engine: `classic`, `growth`, `revenue`, or `ebitda`.
+- `--required-return` (optional): Override discount rate for all stocks.
+- `--perpetual-growth` (optional): Override terminal growth rate.
+
+**Examples:**
 ```bash
 # Scan S&P 500 using the standard engine
 python3 main.py scan --index SP500
 
-# Scan AEX using the Growth (CAPM) engine
-python3 main.py scan --index AEX --engine growth
+# Scan specific tickers using the Growth engine
+python3 main.py scan --tickers AAPL MSFT --engine growth
 ```
 
-### 2. Deep-Dive Valuation
-Run a detailed DCF analysis on a specific ticker.
+### 2. Deep-Dive Valuation (`valuation`)
+Run a detailed DCF or Revenue-based analysis on a specific ticker.
+
+**Arguments:**
+- `--ticker` (required): Ticker symbol (e.g. MSFT, ADYEN.AS).
+- `--engine` (optional): Engine to use: `classic`, `growth`, `revenue`, or `ebitda` (default: `classic`).
+- `--required-return` (optional): Override discount rate.
+- `--perpetual-growth` (optional): Terminal growth rate limit.
+- `--projection-years` (optional): [`classic` only] Explicit projection horizon.
+- `--stage1-years` / `--stage2-years` (optional): [`growth` only] High-growth and decay phase lengths.
+- `--conservative-growth` (optional): Bear-case growth limit override.
+- `--base-multiple` (optional): [`revenue`, `ebitda` only] Override base multiple.
+- `--forward-weight` (optional): [`growth` only] Forward/historical blend weight (0-1).
+- `--sensitivity` (optional): Run Monte Carlo sensitivity analysis after valuation.
+- `--simulations` (optional): Number of Monte Carlo simulations (default: 1000).
+
+**Examples:**
 ```bash
-# Simple valuation
+# Standard valuation
 python3 main.py valuation --ticker ADYEN.AS
 
 # Advanced growth valuation with a "Bear Case" scenario
 python3 main.py valuation --ticker DLO --engine growth --conservative-growth 0.15
+
+# EV/EBITDA valuation for cash-rich companies
+python3 main.py valuation --ticker ADYEN.AS --engine ebitda
+
+# Monte Carlo Sensitivity Analysis
+python3 main.py valuation --ticker NVDA --engine growth --sensitivity
 ```
 
-### 3. Backtesting
+### 3. Backtesting (`backtest`)
 Test a strategy against historical data.
+
+**Arguments:**
+- `--ticker` (optional): Stock ticker.
+- `--period` (optional): Data period, e.g. `2y`, `6mo`.
+- `--start` / `--end` (optional): Date range in `YYYY-MM-DD` (overrides period).
+- `--output` (optional): Save chart to a specific file path.
+
+**Examples:**
 ```bash
 python3 main.py backtest --ticker ASML.AS --period 2y --output asml_chart.png
 ```

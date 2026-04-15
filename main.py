@@ -12,6 +12,9 @@ from trading.visualization.dashboard import Dashboard
 from trading.scanner.engine import MarketScanner
 from trading.scanner.aex_list import AEX_TICKERS
 from trading.scanner.sp500_list import SP500_TICKERS
+from trading.scanner.dax_list import DAX_TICKERS
+from trading.scanner.nasdaq_list import NASDAQ_TICKERS
+from trading.scanner.ftse_list import FTSE_TICKERS
 from trading.valuation import get_valuation_engine
 
 
@@ -75,6 +78,12 @@ def cmd_scan(args, config):
         tickers = AEX_TICKERS
     elif args.index == "SP500":
         tickers = SP500_TICKERS
+    elif args.index == "DAX":
+        tickers = DAX_TICKERS
+    elif args.index == "NASDAQ":
+        tickers = NASDAQ_TICKERS
+    elif args.index == "FTSE":
+        tickers = FTSE_TICKERS
     else:
         tickers = args.tickers or AEX_TICKERS
 
@@ -83,30 +92,36 @@ def cmd_scan(args, config):
 
 
 def cmd_valuation(args, config):
-    """Run a DCF fair-value estimate for a single ticker."""
+    """Run a fair-value estimate for a single ticker."""
     engine = get_valuation_engine(args.engine, sleep_seconds=args.sleep)
-    print(f"\nFetching DCF valuation for {args.ticker} [{args.engine.upper()} engine]...")
-    print(f"  Terminal growth: {args.perpetual_growth * 100:.2f}%")
+    print(f"\nFetching valuation for {args.ticker} [{args.engine.upper()} engine]...")
+    if args.engine not in ['revenue', 'ebitda']:
+        print(f"  Terminal growth: {args.perpetual_growth * 100:.2f}%")
     if hasattr(args, 'required_return') and args.required_return is not None:
         print(f"  Discount rate  : {args.required_return * 100:.1f}% (override)")
     if args.conservative_growth is not None:
         print(f"  Bear-case growth: {args.conservative_growth * 100:.1f}%")
+    if hasattr(args, 'base_multiple') and args.base_multiple is not None:
+        print(f"  Base P/S mult  : {args.base_multiple:.1f}x (override)")
     print()
 
-    # Build keyword args — both engines share this subset
+    # Build keyword args per engine type
     kwargs = dict(
         ticker_symbol=args.ticker,
-        perpetual_growth=args.perpetual_growth,
         conservative_growth=args.conservative_growth,
     )
-    # Classic engine accepts required_return; growth engine accepts discount_rate_override
+
     if args.engine == 'classic':
+        kwargs['perpetual_growth'] = args.perpetual_growth
         kwargs['required_return'] = args.required_return if args.required_return is not None else 0.09
         kwargs['projection_years'] = args.projection_years
-    else:
+    elif args.engine == 'growth':
+        kwargs['perpetual_growth'] = args.perpetual_growth
         kwargs['discount_rate_override'] = args.required_return  # None means auto-CAPM
         kwargs['stage1_years'] = args.stage1_years
         kwargs['stage2_years'] = args.stage2_years
+    elif args.engine in ['revenue', 'ebitda']:
+        kwargs['base_multiple_override'] = getattr(args, 'base_multiple', None)
 
     result = engine.get_valuation_metrics(**kwargs)
 
@@ -118,14 +133,36 @@ def cmd_valuation(args, config):
     print(f"  Current Price  : {result['current_price']:>10.2f}")
     if result.get('engine') == 'growth':
         print(f"  Growth Rate    : {result.get('growth_rate_pct', 'N/A'):>9.1f}%")
+        src = result.get('growth_rate_source', 'N/A')
+        print(f"  Growth Source  : {src}")
         print(f"  Beta / CAPM    : {result.get('beta', 'N/A')} / {result.get('capm_rate_pct', 'N/A')}%")
+    elif result.get('engine') == 'revenue':
+        print(f"  Sector         : {result.get('sector', 'N/A')}")
+        print(f"  Growth Rate    : {result.get('growth_rate_pct', 'N/A'):>9.1f}%")
+        rev = result.get('trailing_revenue', 0)
+        print(f"  Trailing Rev   : {rev:>14,.0f}")
+        print(f"  P/S Multiple   : {result.get('ps_multiple_used', 'N/A'):>9.2f}x")
+    elif result.get('engine') == 'ebitda':
+        print(f"  Sector         : {result.get('sector', 'N/A')}")
+        print(f"  Growth Rate    : {result.get('growth_rate_pct', 'N/A'):>9.1f}%")
+        ebitda = result.get('trailing_ebitda', 0)
+        print(f"  EBITDA         : {ebitda:>14,.0f}")
+        print(f"  EV/EBITDA      : {result.get('ev_ebitda_multiple_used', 'N/A'):>9.2f}x")
     print(f"  Fair Value Bull: {result['fair_value_bull']:>10.2f}")
     if 'fair_value_bear' in result:
         print(f"  Fair Value Bear: {result['fair_value_bear']:>10.2f}")
         print(f"  Fair Value Mid : {result['fair_value_mid']:>10.2f}")
     print(f"  Upside %       : {result['upside_pct']:>+10.1f}%")
-    status = "UNDERVALUED ✅" if result['is_undervalued'] else "FAIRLY / OVER valued"
+    status = "UNDERVALUED" if result['is_undervalued'] else "FAIRLY / OVER valued"
     print(f"  Status         : {status}")
+
+    # --- Sensitivity Analysis ---
+    if getattr(args, 'sensitivity', False):
+        from trading.valuation.sensitivity import SensitivityAnalysis
+        sector = result.get('sector')
+        sa = SensitivityAnalysis(engine, n_simulations=args.simulations)
+        sa_result = sa.run(args.ticker, sector=sector)
+        sa.print_report(sa_result)
 
 
 def main():
@@ -147,7 +184,7 @@ def main():
     scan_parser = subparsers.add_parser("scan", help="Scan multiple tickers for signals")
     scan_parser.add_argument("--index", type=str, default="AEX", help="Index to scan (default: AEX)")
     scan_parser.add_argument("--tickers", nargs="+", default=None, help="Specific tickers to scan")
-    scan_parser.add_argument("--engine", type=str, choices=["classic", "growth"],
+    scan_parser.add_argument("--engine", type=str, choices=["classic", "growth", "revenue", "ebitda"],
                             help="Valuation engine to use (default: from config)")
     scan_parser.add_argument("--required-return", type=float, default=None,
                             help="Override discount rate for all stocks in the scan")
@@ -157,8 +194,8 @@ def main():
     # Valuation subcommand
     val_parser = subparsers.add_parser("valuation", help="DCF fair-value estimate for a ticker")
     val_parser.add_argument("--ticker", type=str, required=True, help="Ticker symbol, e.g. ADYEN.AS")
-    val_parser.add_argument("--engine", type=str, default="classic", choices=["classic", "growth"],
-                            help="Valuation engine: 'classic' (5yr flat) | 'growth' (10yr CAPM decay, default: classic)")
+    val_parser.add_argument("--engine", type=str, default="classic", choices=["classic", "growth", "revenue", "ebitda"],
+                            help="Valuation engine: 'classic' | 'growth' | 'revenue' | 'ebitda' (default: classic)")
     val_parser.add_argument("--required-return", type=float, default=None,
                             help="Override discount rate (default: CAPM for growth, 9%% for classic)")
     val_parser.add_argument("--perpetual-growth", type=float, default=0.025,
@@ -173,6 +210,14 @@ def main():
                             help="Bear-case growth override, e.g. 0.05 (optional)")
     val_parser.add_argument("--sleep", type=float, default=1.5,
                             help="Seconds to sleep between Yahoo Finance calls (default: 1.5)")
+    val_parser.add_argument("--base-multiple", type=float, default=None,
+                            help="[revenue only] Override base P/S multiple")
+    val_parser.add_argument("--forward-weight", type=float, default=None,
+                            help="[growth only] Forward/historical blend weight 0-1 (default: 0.6)")
+    val_parser.add_argument("--sensitivity", action="store_true",
+                            help="Run Monte Carlo sensitivity analysis after valuation")
+    val_parser.add_argument("--simulations", type=int, default=1000,
+                            help="Number of Monte Carlo simulations (default: 1000)")
 
     args = parser.parse_args()
     config = load_config(args.config)

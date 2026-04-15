@@ -41,6 +41,7 @@ class BaseStrategy(ABC):
     def __init__(self, config: dict):
         self.config = config
         self.fair_value: Optional[float] = None
+        self.valuation_metrics: dict = {}
 
     @abstractmethod
     def prepare_data(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -61,8 +62,10 @@ class BaseStrategy(ABC):
         engine_type = strat_cfg.get("valuation_engine", "classic")
         engine = get_valuation_engine(engine_type)
         
-        # Build arguments for the engine
-        kwargs = {}
+        # Build arguments for the engine from config
+        kwargs = {"ticker_symbol": ticker}
+        
+        # Mapping config keys to engine-specific kwargs
         if "perpetual_growth" in strat_cfg:
             kwargs["perpetual_growth"] = strat_cfg["perpetual_growth"]
             
@@ -71,10 +74,24 @@ class BaseStrategy(ABC):
                 kwargs["discount_rate_override"] = strat_cfg["required_return"]
             else:
                 kwargs["required_return"] = strat_cfg["required_return"]
+                
+        # Handle engine-specific stages/horizons if present in config
+        if engine_type == "classic":
+            if "projection_years" in strat_cfg:
+                kwargs["projection_years"] = strat_cfg["projection_years"]
+        elif engine_type == "growth":
+            if "stage1_years" in strat_cfg:
+                kwargs["stage1_years"] = strat_cfg["stage1_years"]
+            if "stage2_years" in strat_cfg:
+                kwargs["stage2_years"] = strat_cfg["stage2_years"]
         
         try:
-            # We use calculate_dcf_fair_value which is common to both
-            self.fair_value = engine.calculate_dcf_fair_value(ticker, **kwargs)
+            # Get full metrics dictionary
+            metrics = engine.get_valuation_metrics(**kwargs)
+            self.valuation_metrics = metrics
+            self.fair_value = metrics.get("fair_value_bull")
         except Exception as e:
             print(f"Valuation error: {e}")
             self.fair_value = None
+            self.valuation_metrics = {"error": str(e)}
+

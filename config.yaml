@@ -16,7 +16,8 @@ strategy:
   macd_signal: 9
   bollinger_period: 20
   bollinger_std_dev: 2
-  valuation_engine: "classic"  # Options: "classic", "growth"
+  valuation_engine: "classic"  # Options: "classic", "growth", "revenue"
+  forward_estimate_weight: 0.6  # Blend weight for analyst forward estimates (growth engine)
 
 risk:
   initial_capital: 100000.0
@@ -26,6 +27,10 @@ risk:
   max_drawdown_pct: 0.20
   margin_of_safety: 0.15
   max_open_positions: 5
+
+sensitivity:
+  n_simulations: 1000
+  seed: null  # Set for reproducible results
 
 paper_trading:
   tickers: ["ADYEN.AS", "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]

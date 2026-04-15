@@ -1,0 +1,464 @@
+{
+  "SBAC": {
+    "timestamp": 1776273097.441885,
+    "data": {
+      "revenue": 2815139072.0,
+      "shares_outstanding": 106062407.0,
+      "growth_rate": 0.016855263157894738,
+      "sector": "Real Estate",
+      "industry": "REIT - Specialty"
+    }
+  },
+  "STX": {
+    "timestamp": 1776273101.595857,
+    "data": {
+      "revenue": 10058000384.0,
+      "shares_outstanding": 224025376.0,
+      "growth_rate": 0.6028947368421054,
+      "sector": "Technology",
+      "industry": "Computer Hardware"
+    }
+  },
+  "SPG": {
+    "timestamp": 1776273105.7499578,
+    "data": {
+      "revenue": 6364505088.0,
+      "shares_outstanding": 324840186.0,
+      "growth_rate": 0.05601578947368421,
+      "sector": "Real Estate",
+      "industry": "REIT - Retail"
+    }
+  },
+  "SJM": {
+    "timestamp": 1776273109.9566772,
+    "data": {
+      "revenue": 8926600192.0,
+      "shares_outstanding": 106648319.0,
+      "growth_rate": 0.07,
+      "sector": "Consumer Defensive",
+      "industry": "Packaged Foods"
+    }
+  },
+  "SO": {
+    "timestamp": 1776273114.610943,
+    "data": {
+      "revenue": 29553000448.0,
+      "shares_outstanding": 1127304104.0,
+      "growth_rate": -0.1532105263157895,
+      "sector": "Utilities",
+      "industry": "Utilities - Regulated Electric"
+    }
+  },
+  "SBUX": {
+    "timestamp": 1776273118.808396,
+    "data": {
+      "revenue": 37701701632.0,
+      "shares_outstanding": 1139300000.0,
+      "growth_rate": -0.22526315789473683,
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants"
+    }
+  },
+  "STE": {
+    "timestamp": 1776273122.9997818,
+    "data": {
+      "revenue": 5828015104.0,
+      "shares_outstanding": 98075025.0,
+      "growth_rate": 0.11252631578947368,
+      "sector": "Healthcare",
+      "industry": "Medical Devices"
+    }
+  },
+  "SYF": {
+    "timestamp": 1776273128.291512,
+    "data": {
+      "revenue": 9756000256.0,
+      "shares_outstanding": 347596279.0,
+      "growth_rate": 0.04368421052631579,
+      "sector": "Financial Services",
+      "industry": "Credit Services"
+    }
+  },
+  "TMUS": {
+    "timestamp": 1776273132.667558,
+    "data": {
+      "revenue": 88308998144.0,
+      "shares_outstanding": 1101862739.0,
+      "growth_rate": -0.19384210526315787,
+      "sector": "Communication Services",
+      "industry": "Telecom Services"
+    }
+  },
+  "TPR": {
+    "timestamp": 1776273136.795855,
+    "data": {
+      "revenue": 7514800128.0,
+      "shares_outstanding": 202464223.0,
+      "growth_rate": 0.7378947368421054,
+      "sector": "Consumer Cyclical",
+      "industry": "Luxury Goods"
+    }
+  },
+  "TEL": {
+    "timestamp": 1776273140.9471118,
+    "data": {
+      "revenue": 18094999552.0,
+      "shares_outstanding": 293434273.0,
+      "growth_rate": 0.3898947368421053,
+      "sector": "Technology",
+      "industry": "Electronic Components"
+    }
+  },
+  "TSLA": {
+    "timestamp": 1776273145.0700622,
+    "data": {
+      "revenue": 94827003904.0,
+      "shares_outstanding": 3752431984.0,
+      "growth_rate": -0.24336842105263157,
+      "sector": "Consumer Cyclical",
+      "industry": "Auto Manufacturers"
+    }
+  },
+  "TXT": {
+    "timestamp": 1776273149.301389,
+    "data": {
+      "revenue": 14798999552.0,
+      "shares_outstanding": 174098891.0,
+      "growth_rate": 0.5999473684210528,
+      "sector": "Industrials",
+      "industry": "Aerospace & Defense"
+    }
+  },
+  "TKO": {
+    "timestamp": 1776273153.637172,
+    "data": {
+      "revenue": 4735151104.0,
+      "shares_outstanding": 77966338.0,
+      "growth_rate": 0.11900000000000001,
+      "sector": "Communication Services",
+      "industry": "Entertainment"
+    }
+  },
+  "TT": {
+    "timestamp": 1776273158.12654,
+    "data": {
+      "revenue": 21321900032.0,
+      "shares_outstanding": 221331905.0,
+      "growth_rate": 0.0033684210526315804,
+      "sector": "Industrials",
+      "industry": "Building Products & Equipment"
+    }
+  },
+  "TRMB": {
+    "timestamp": 1776273162.2087429,
+    "data": {
+      "revenue": 3587300096.0,
+      "shares_outstanding": 232088731.0,
+      "growth_rate": 0.614421052631579,
+      "sector": "Technology",
+      "industry": "Scientific & Technical Instruments"
+    }
+  },
+  "TYL": {
+    "timestamp": 1776273165.892519,
+    "data": {
+      "revenue": 2332339968.0,
+      "shares_outstanding": 42453700.0,
+      "growth_rate": 0.020368421052631577,
+      "sector": "Technology",
+      "industry": "Software - Application"
+    }
+  },
+  "UBER": {
+    "timestamp": 1776273170.188421,
+    "data": {
+      "revenue": 52017000448.0,
+      "shares_outstanding": 2036824858.0,
+      "growth_rate": -0.19452631578947366,
+      "sector": "Technology",
+      "industry": "Software - Application"
+    }
+  },
+  "UNP": {
+    "timestamp": 1776273175.483882,
+    "data": {
+      "revenue": 24509999104.0,
+      "shares_outstanding": 593678300.0,
+      "growth_rate": 0.04742105263157895,
+      "sector": "Industrials",
+      "industry": "Railroads"
+    }
+  },
+  "UNH": {
+    "timestamp": 1776273179.6864371,
+    "data": {
+      "revenue": 447567003648.0,
+      "shares_outstanding": 907675839.0,
+      "growth_rate": -0.2109473684210526,
+      "sector": "Healthcare",
+      "industry": "Healthcare Plans"
+    }
+  },
+  "VTR": {
+    "timestamp": 1776273183.862255,
+    "data": {
+      "revenue": 5817438208.0,
+      "shares_outstanding": 475463173.0,
+      "growth_rate": 0.1600526315789474,
+      "sector": "Real Estate",
+      "industry": "REIT - Healthcare Facilities"
+    }
+  },
+  "VRSK": {
+    "timestamp": 1776273188.116383,
+    "data": {
+      "revenue": 3072699904.0,
+      "shares_outstanding": 131000536.0,
+      "growth_rate": 0.08,
+      "sector": "Industrials",
+      "industry": "Consulting Services"
+    }
+  },
+  "VRT": {
+    "timestamp": 1776273192.262762,
+    "data": {
+      "revenue": 10229900288.0,
+      "shares_outstanding": 382598464.0,
+      "growth_rate": 0.0636342105263158,
+      "sector": "Industrials",
+      "industry": "Electrical Equipment & Parts"
+    }
+  },
+  "V": {
+    "timestamp": 1776273196.4432168,
+    "data": {
+      "revenue": 41391001600.0,
+      "shares_outstanding": 1681093942.0,
+      "growth_rate": 0.15994736842105264,
+      "sector": "Financial Services",
+      "industry": "Credit Services"
+    }
+  },
+  "WRB": {
+    "timestamp": 1776273200.7664142,
+    "data": {
+      "revenue": 14707856384.0,
+      "shares_outstanding": 374490856.0,
+      "growth_rate": -0.16947368421052633,
+      "sector": "Financial Services",
+      "industry": "Insurance - Property & Casualty"
+    }
+  },
+  "WMT": {
+    "timestamp": 1776273204.977341,
+    "data": {
+      "revenue": 713163014144.0,
+      "shares_outstanding": 7972402501.0,
+      "growth_rate": -0.13926315789473687,
+      "sector": "Consumer Defensive",
+      "industry": "Discount Stores"
+    }
+  },
+  "WM": {
+    "timestamp": 1776273209.1651819,
+    "data": {
+      "revenue": 25204000768.0,
+      "shares_outstanding": 402913509.0,
+      "growth_rate": 0.20257894736842105,
+      "sector": "Industrials",
+      "industry": "Waste Management"
+    }
+  },
+  "WFC": {
+    "timestamp": 1776273213.382943,
+    "data": {
+      "revenue": 81135001600.0,
+      "shares_outstanding": 3064300000.0,
+      "growth_rate": 0.11068421052631579,
+      "sector": "Financial Services",
+      "industry": "Banks - Diversified"
+    }
+  },
+  "WDC": {
+    "timestamp": 1776273217.547679,
+    "data": {
+      "revenue": 10734000128.0,
+      "shares_outstanding": 339037922.0,
+      "growth_rate": 0.06856052631578947,
+      "sector": "Technology",
+      "industry": "Computer Hardware"
+    }
+  },
+  "WMB": {
+    "timestamp": 1776273221.7898188,
+    "data": {
+      "revenue": 11829999616.0,
+      "shares_outstanding": 1222856952.0,
+      "growth_rate": 0.4198947368421053,
+      "sector": "Energy",
+      "industry": "Oil & Gas Midstream"
+    }
+  },
+  "WYNN": {
+    "timestamp": 1776273225.9526222,
+    "data": {
+      "revenue": 7137924096.0,
+      "shares_outstanding": 104043396.0,
+      "growth_rate": -0.23368421052631577,
+      "sector": "Consumer Cyclical",
+      "industry": "Resorts & Casinos"
+    }
+  },
+  "YUM": {
+    "timestamp": 1776273230.005166,
+    "data": {
+      "revenue": 8214000128.0,
+      "shares_outstanding": 276173275.0,
+      "growth_rate": 0.2292105263157895,
+      "sector": "Consumer Cyclical",
+      "industry": "Restaurants"
+    }
+  },
+  "ZBH": {
+    "timestamp": 1776273234.353525,
+    "data": {
+      "revenue": 8231499776.0,
+      "shares_outstanding": 193569082.0,
+      "growth_rate": -0.21389473684210528,
+      "sector": "Healthcare",
+      "industry": "Medical Devices"
+    }
+  },
+  "ADYEN.AS": {
+    "timestamp": 1776273625.0453131,
+    "data": {
+      "ebitda": 1196995968.0,
+      "shares_outstanding": 31536692.0,
+      "total_cash": 10827529216.0,
+      "total_debt": 252366000.0,
+      "growth_rate": 0.13189473684210526,
+      "sector": "Technology",
+      "industry": "Software - Infrastructure"
+    }
+  },
+  "BFIT.AS": {
+    "timestamp": 1776273845.8525991,
+    "data": {
+      "ebitda": 376700000.0,
+      "shares_outstanding": 64809323.0,
+      "total_cash": 115000000.0,
+      "total_debt": 3164800000.0,
+      "growth_rate": 0.07656578947368421,
+      "sector": "Consumer Cyclical",
+      "industry": "Leisure"
+    }
+  },
+  "AZN.L": {
+    "timestamp": 1776273967.48122,
+    "data": {
+      "fcf": 8670000000.0,
+      "shares_outstanding": 1550833276,
+      "growth_rate": 0.539
+    }
+  },
+  "GSK.L": {
+    "timestamp": 1776273972.168273,
+    "data": {
+      "fcf": 4756000000.0,
+      "shares_outstanding": 3994877939,
+      "growth_rate": 0.547
+    }
+  },
+  "RIO.L": {
+    "timestamp": 1776273976.850611,
+    "data": {
+      "fcf": 4497000000.0,
+      "shares_outstanding": 1254466320,
+      "growth_rate": -0.056
+    }
+  },
+  "BATS.L": {
+    "timestamp": 1776273980.698984,
+    "data": {
+      "fcf": 5638000000.0,
+      "shares_outstanding": 2165452359,
+      "growth_rate": 0.001
+    }
+  },
+  "STAN.L": {
+    "timestamp": 1776273985.242623,
+    "data": {
+      "fcf": 35484000000.0,
+      "shares_outstanding": 2211007062,
+      "growth_rate": 0.002
+    }
+  },
+  "NWG.L": {
+    "timestamp": 1776273989.7769,
+    "data": {
+      "fcf": 5790000000.0,
+      "shares_outstanding": 7971410133,
+      "growth_rate": 0.131
+    }
+  },
+  "AHT.L": {
+    "timestamp": 1776273994.502697,
+    "data": {
+      "fcf": 1718300000.0,
+      "shares_outstanding": 413564085,
+      "growth_rate": -0.096
+    }
+  },
+  "SN.L": {
+    "timestamp": 1776273998.930184,
+    "data": {
+      "fcf": 852000000.0,
+      "shares_outstanding": 853571798,
+      "growth_rate": 0.6
+    }
+  },
+  "TSM": {
+    "timestamp": 1776274065.4762151,
+    "data": {
+      "ebitda": 2614264070144.0,
+      "shares_outstanding": 5186504904.0,
+      "total_cash": 3068494610432.0,
+      "total_debt": 1068416565248.0,
+      "growth_rate": 0.31947368421052624,
+      "sector": "Technology",
+      "industry": "Semiconductors"
+    }
+  },
+  "2330.TW": {
+    "timestamp": 1776274168.919253,
+    "data": {
+      "fcf": 992378314000.0,
+      "shares_outstanding": 25932524521,
+      "growth_rate": 0.2694494736842105,
+      "beta": 1.251,
+      "growth_rate_source": "blended"
+    }
+  },
+  "MGM": {
+    "timestamp": 1776274248.402036,
+    "data": {
+      "ebitda": 2354554880.0,
+      "shares_outstanding": 255828519.0,
+      "total_cash": 2273153024.0,
+      "total_debt": 31553853440.0,
+      "growth_rate": 0.2463526315789474,
+      "sector": "Consumer Cyclical",
+      "industry": "Resorts & Casinos"
+    }
+  },
+  "SPOT": {
+    "timestamp": 1776274477.2772338,
+    "data": {
+      "revenue": 17186000896.0,
+      "shares_outstanding": 205882340.0,
+      "growth_rate": 0.03136052631578948,
+      "sector": "Communication Services",
+      "industry": "Internet Content & Information"
+    }
+  }
+}

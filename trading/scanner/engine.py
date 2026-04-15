@@ -30,17 +30,32 @@ def _scan_single_ticker_task(ticker, config):
         
         # 4. Collect results
         current_price = df["Close"].iloc[-1]
-        fair_value = strategy.fair_value
-        upside = ((fair_value - current_price) / current_price) if fair_value else 0
+        metrics = strategy.valuation_metrics
+        fair_value = metrics.get("fair_value_bull")
+        upside = metrics.get("upside_pct", 0) / 100.0 if fair_value else 0
 
-        return {
+        res = {
             "Ticker": ticker,
             "Price": round(float(current_price), 2),
             "Fair Value": round(float(fair_value), 2) if fair_value else "N/A",
             "Upside %": round(float(upside * 100), 2) if fair_value else "N/A",
             "Signal": signal.name,
-            "Status": "Actionable" if signal != Signal.HOLD else "Stable"
         }
+
+        # Add engine-specific metrics
+        if "growth_rate_pct" in metrics:
+            res["Growth %"] = metrics["growth_rate_pct"]
+        if "beta" in metrics:
+            res["Beta"] = metrics["beta"]
+        if "ps_multiple_used" in metrics:
+            res["P/S Multi"] = metrics["ps_multiple_used"]
+        if "ev_ebitda_multiple_used" in metrics:
+            res["EV/EBITDA"] = metrics["ev_ebitda_multiple_used"]
+        if "sector" in metrics:
+            res["Sector"] = metrics["sector"]
+
+        res["Status"] = "Actionable" if signal != Signal.HOLD else "Stable"
+        return res
 
     except Exception as e:
         return {
@@ -51,6 +66,7 @@ def _scan_single_ticker_task(ticker, config):
             "Signal": "ERROR",
             "Status": str(e)[:40]
         }
+
 
 class MarketScanner:
     """Scans a list of tickers for active strategy signals in parallel."""
@@ -82,20 +98,36 @@ class MarketScanner:
         # Convert Upside % to numeric for sorting, replacing N/A with NaN
         df_results["Upside %"] = pd.to_numeric(df_results["Upside %"].replace("N/A", np.nan))
         
+        # Define column order for a clean look
+        # Essential columns
+        cols = ["Ticker", "Price", "Fair Value", "Upside %", "Signal"]
+        
+        # Optional engine-specific columns
+        opt_cols = ["Growth %", "Beta", "P/S Multi", "EV/EBITDA", "Sector", "Status"]
+        for c in opt_cols:
+            if c in df_results.columns:
+                cols.append(c)
+        
+        # Filter to only existing columns
+        cols = [c for c in cols if c in df_results.columns]
+        df_display = df_results[cols]
+        
+        # Sort by upside
+        df_display = df_display.sort_values(by="Upside %", ascending=False)
+
+        print("\n" + "=" * 100)
+        print(" MARKET SCAN REPORT ".center(100))
+        print("=" * 100)
+        
         # Highlight BUY signals
-        buys = df_results[df_results["Signal"] == "BUY"]
-        
-        print("\n" + "=" * 80)
-        print(" MARKET SCAN REPORT ")
-        print("=" * 80)
-        
+        buys = df_display[df_display["Signal"] == "BUY"]
         if not buys.empty:
             print(f"Found {len(buys)} active BUY signals:")
             print(buys.to_string(index=False))
-            print("-" * 80)
+            print("-" * 100)
 
         # Show Top N by upside potential
         print(f"\nTop {top_n} Tickers by Upside Potential:")
-        report_df = df_results.sort_values(by="Upside %", ascending=False).head(top_n)
-        print(report_df.to_string(index=False))
-        print("=" * 80)
+        print(df_display.head(top_n).to_string(index=False))
+        print("=" * 100)
+
